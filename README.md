@@ -773,10 +773,8 @@ You are free to use, modify, and distribute this software for commercial and non
 
 ## 📞 Support & Contact
 
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/yourusername/CodeExec-AI/issues)
-- **Discussions**: Start discussions on [GitHub Discussions](https://github.com/yourusername/CodeExec-AI/discussions)
-- **Documentation**: Full docs available in [docs/](docs/) folder
-- **Email**: contact@example.com
+
+- **Email**: k.himavanthsingh@gmail.com
 
 ---
 
