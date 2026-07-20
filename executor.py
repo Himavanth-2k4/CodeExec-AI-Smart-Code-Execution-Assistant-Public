@@ -99,6 +99,23 @@ def _strip_input_calls(code: str) -> str:
 OUTPUT_FILE_EXTENSIONS = {'.csv', '.xlsx', '.xls', '.json', '.txt', '.html', '.md',
                           '.png', '.jpg', '.jpeg', '.svg', '.pdf'}
 
+DEFAULT_TIMEOUT_SECONDS = 30
+MAX_OUTPUT_BYTES = 5 * 1024 * 1024  # 5 MB cap on captured outputs
+
+
+class ExecutionLimits:
+    """Enforces resource boundaries on script execution."""
+    def __init__(self, timeout_sec: int = DEFAULT_TIMEOUT_SECONDS, max_output_bytes: int = MAX_OUTPUT_BYTES):
+        self.timeout_sec = max(1, min(timeout_sec, 120))  # hard cap between 1 and 120s
+        self.max_output_bytes = max_output_bytes
+
+    def sanitize_output(self, text: str) -> str:
+        """Truncates excessively large stdout/stderr buffers."""
+        if len(text.encode('utf-8')) > self.max_output_bytes:
+            truncated = text[:self.max_output_bytes] + "\n[Output truncated: exceeded maximum buffer size]"
+            return truncated
+        return text
+
 
 def execute_python_code(code: str, timeout: int = 30) -> dict:
     """
