@@ -15,6 +15,7 @@ import uuid
 import traceback
 import logging
 import re
+import time
 from typing import Dict, List, Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, UploadFile, File
@@ -57,6 +58,27 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="CodeExec AI", lifespan=lifespan)
+
+# --- Rate Limiting Middleware ---
+_request_records: Dict[str, List[float]] = {}
+RATE_LIMIT_PER_MINUTE = 60
+
+@app.middleware("http")
+async def rate_limiting_middleware(request: Request, call_next):
+    if request.url.path.startswith("/api/execute"):
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        now = time.time()
+        timestamps = _request_records.get(client_ip, [])
+        # retain timestamps within the last 60 seconds
+        timestamps = [t for t in timestamps if now - t < 60]
+        if len(timestamps) >= RATE_LIMIT_PER_MINUTE:
+            return JSONResponse(
+                status_code=429,
+                content={"error": "Rate limit exceeded", "detail": "Maximum 60 executions per minute allowed."}
+            )
+        timestamps.append(now)
+        _request_records[client_ip] = timestamps
+    return await call_next(request)
 
 # Serve static files (the web UI)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")

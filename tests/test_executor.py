@@ -54,3 +54,11 @@ def test_strip_input_calls():
     code_with_input = "name = input('Enter name: ')\nage = input()\nprint(name, age)"
     sanitized = _strip_input_calls(code_with_input)
     assert "input(" not in sanitized or "# input() auto-removed" in sanitized
+
+def test_execution_limits_initialization():
+    from executor import ExecutionLimits
+    limits = ExecutionLimits(timeout_sec=45)
+    assert limits.timeout_sec == 45
+    # Cap test
+    capped = ExecutionLimits(timeout_sec=300)
+    assert capped.timeout_sec == 120
